@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Apps | Casa de Pagos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid #334155;
+        }
+
+        .accordion {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid #334155;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .accordion summary {
+            padding: 1.5rem 2rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .accordion summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .accordion summary::after {
+            content: "＋";
+            color: var(--primary);
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion[open] summary::after {
+            content: "−";
+        }
+
+        .accordion-content {
+            padding: 0 2rem 2rem 2rem;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        /* Animaciones base de página */
+        @keyframes fadeInDownPage {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeInDownPage 0.5s ease-out backwards;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .app-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .app-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-info h3 {
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .app-info p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .copy-badge {
+            background: #334155;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="animate-fade-in" style="animation-delay: 0.1s;">
+            <div>
+                <h1>Gestión de Aplicaciones</h1>
+                <a href="/dashboard" class="back-link">← Volver al Dashboard</a>
+            </div>
+        </header>
+
+        <details class="accordion animate-fade-in" style="animation-delay: 0.2s;">
+            <summary>Registrar Nueva Aplicación</summary>
+            <div class="accordion-content">
+                <form action="/api/apps/create" method="POST" onsubmit="handleCreate(event)">
+                    <div class="form-group">
+                        <label>Nombre de la App (ej: App Nutrición)</label>
+                        <input type="text" name="name" required placeholder="Nombre descriptivo">
+                    </div>
+                    <div class="form-group">
+                        <label>ID de la App (ej: nutricion_app)</label>
+                        <input type="text" name="app_key" required placeholder="Identificador único">
+                    </div>
+                    <div class="form-group">
+                        <label>Dominios Permitidos (CORS)</label>
+                        <input type="text" name="allowed_origins" required
+                            placeholder="http://localhost:5173, https://mi-app.com">
+                    </div>
+                    <div class="form-group">
+                        <label>URL de Webhook (Totalmente Opcional)</label>
+                        <input type="url" name="webhook_url" placeholder="Ej: https://mi-app.com/api/webhooks/pagos">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            Déjalo en blanco si no quieres recibir avisos backend. Puedes configurarlo en el futuro.
+                        </p>
+                    </div>
+                    <button type="submit" style="width: 100%;">Registrar Aplicación</button>
+                </form>
+            </div>
+        </details>
+
+        <h2 class="animate-fade-in" style="margin-bottom: 1rem; font-size: 1.25rem; animation-delay: 0.3s;">Apps
+            Registradas</h2>
+        <div class="app-list animate-fade-in" style="animation-delay: 0.4s;">
+            <% apps.forEach(app=> { %>
+                <div class="app-item">
+                    <div class="app-info">
+                        <h3>
+                            <%= app.name %> (<%= app.app_key %>)
+                        </h3>
+                        <p>Dominios: <%= app.allowed_origins %>
+                        </p>
+                        <p>Webhook: <%= app.webhook_url || 'No configurado' %>
+                        </p>
+                    </div>
+                    <div
+                        style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">Secret
+                                Key (Uso en Headers)</div>
+                            <div class="copy-badge">
+                                <%= app.secret_key %>
+                            </div>
+                        </div>
+                        <button onclick="toggleEdit('<%= app.id %>')"
+                            style="background: #334155; padding: 0.25rem 0.5rem; font-size: 0.75rem; width: auto;">✏️
+                            Editar</button>
+                    </div>
+                </div>
+
+                <!-- Formulario de Edición (Oculto por defecto) -->
+                <div id="edit-form-<%= app.id %>" class="form-card"
+                    style="display: none; margin-top: -0.5rem; margin-bottom: 1rem; border-top-left-radius: 0; border-top-right-radius: 0; background: #0f172a;">
+                    <form onsubmit="handleEdit(event, '<%= app.id %>')">
+                        <div class="form-group">
+                            <label>Nombre de la App</label>
+                            <input type="text" name="name" required value="<%= app.name %>">
+                        </div>
+                        <div class="form-group">
+                            <label>Dominios Permitidos (CORS)</label>
+                            <input type="text" name="allowed_origins" required value="<%= app.allowed_origins %>">
+                        </div>
+                        <div class="form-group">
+                            <label>URL de Webhook</label>
+                            <input type="url" name="webhook_url" value="<%= app.webhook_url || '' %>">
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button type="submit" style="flex: 1;">Guardar Cambios</button>
+                            <button type="button" onclick="toggleEdit('<%= app.id %>')"
+                                style="flex: 1; background: #334155;">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+                <% }) %>
+        </div>
+    </div>
+
+    <script>
+        async function handleCreate(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            // Si el webhook está vacío, lo eliminamos para evitar errores de validación
+            if (!data.webhook_url) {
+                delete data.webhook_url;
+            }
+
+            try {
+                // Usamos la key entregada directamente por el servidor
+                const response = await fetch('/api/apps/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': '<%= apiKey %>'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('🚀 Aplicación creada con éxito!');
+                    window.location.reload();
+                } else {
+                    alert(`❌ Error al crear aplicación:\n\n${result.error || 'Asegúrate que el ID sea único.'}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('❌ Error de conexión al crear la aplicación. Verifica la consola para más detalles.');
+            }
+        }
+
+        // Toggle del formulario de edición
+        function toggleEdit(id) {
+            const form = document.getElementById('edit-form-' + id);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Petición para editar la aplicación
+        async function handleEdit(e, id) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            // Si el webhook está vacío, forzamos a nulo para borrarlo en BD
+            if (!data.webhook_url) {
+                data.webhook_url = null;
+            }
+
+            try {
+                const response = await fetch('/api/apps/' + id, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': '<%= apiKey %>'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('✅ Cambios guardados con éxito!');
+                    window.location.reload();
+                } else {
+                    const result = await response.json();
+                    alert(`❌ Error al editar:\n\n${result.error || 'Error desconocido.'}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('❌ Error de conexión al guardar los cambios.');
+            }
+        }
+    </script>
+</body>
+
+</html>

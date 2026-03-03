@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Application {
+  id              String    @id @default(uuid())
+  name            String    // Nombre amigable: "App Nutrición"
+  app_key         String    @unique // El identificador que usa la app: "nutricion_app"
+  allowed_origins String    // Dominios permitidos separados por comas
+  webhook_url     String?   // URL a la que notificaremos los pagos aprobados
+  secret_key      String    @default(uuid()) // Key única para que esta app se autentique
+  active          Boolean   @default(true)
+  
+  payments        Payment[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Payment {
+  id                 String   @id @default(uuid())
+  app_id             String   // ID de la aplicación solicitante
+  external_reference String   // ID de la transacción en la app de origen
+  status             String   @default("pending")
+  amount             Float
+  currency           String   @default("ARS")
+  description        String
+  payer_email        String
+  metadata           Json?
+  
+  // Relación con el nuevo modelo de Application
+  application        Application @relation(fields: [app_id], references: [app_key])
+
+  // Datos de Suscripción (Nueva Funcionalidad)
+  payment_type       String   @default("one_time") // "one_time" o "subscription"
+  frequency          String?  // Ej: "monthly", "yearly"
+  subscription_id    String?  // ID del Preapproval / Suscripción en Mercado Pago
+
+  mercadopago_id     String?  @unique
+  init_point         String?
+  raw_webhook_data   Json?
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([app_id])
+  @@index([external_reference])
+  @@index([status])
+}
